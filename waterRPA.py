@@ -3,6 +3,25 @@ import time
 import xlrd
 import pyperclip
 
+import os
+
+def list_subdirectories(directory_path):
+    # 获取指定路径下的所有文件和文件夹
+    with os.scandir(directory_path) as entries:
+        # 过滤出文件夹并提取名称
+        subdirectories = [entry.name for entry in entries if entry.is_dir()]
+    return subdirectories
+
+def get_dirNameList():
+    # 指定文件夹路径
+    path = r'E:\同等学力数据\2025年1月14日'  # 替换为你的文件夹路径
+
+    # 获取子文件夹名称
+    subfolder_names = list_subdirectories(path)
+
+    return subfolder_names
+
+
 #定义鼠标事件
 
 #pyautogui库其他用法 https://blog.csdn.net/qingfengxd1/article/details/108270159
@@ -59,7 +78,7 @@ def dataCheck(sheet1):
         # 第1列 操作类型检查
         cmdType = sheet1.row(i)[0]
         if cmdType.ctype != 2 or (cmdType.value != 1.0 and cmdType.value != 2.0 and cmdType.value != 3.0 
-        and cmdType.value != 4.0 and cmdType.value != 5.0 and cmdType.value != 6.0):
+        and cmdType.value != 4.0 and cmdType.value != 5.0 and cmdType.value != 6.0 and cmdType.value != 7.0 and cmdType.value != 8.0):
             print('第',i+1,"行,第1列数据有毛病")
             checkCmd = False
         # 第2列 内容检查
@@ -88,7 +107,7 @@ def dataCheck(sheet1):
     return checkCmd
 
 #任务
-def mainWork(img):
+def mainWork(img,name):
     i = 1
     while i < sheet1.nrows:
         #取本行指令的操作类型
@@ -124,6 +143,8 @@ def mainWork(img):
         #4代表输入
         elif cmdType.value == 4.0:
             inputValue = sheet1.row(i)[1].value
+            if inputValue == '$':
+                inputValue = name
             pyperclip.copy(inputValue)
             pyautogui.hotkey('ctrl','v')
             time.sleep(0.5)
@@ -139,7 +160,19 @@ def mainWork(img):
             #取图片名称
             scroll = sheet1.row(i)[1].value
             pyautogui.scroll(int(scroll))
-            print("滚轮滑动",int(scroll),"距离")                      
+            print("滚轮滑动",int(scroll),"距离")     
+        #7代表坐标点击左键
+        elif cmdType.value == 7.0:
+            reTry = 1
+            xy = sheet1.row(i)[1].value.split(',')
+            pyautogui.click((int)(xy[0]),(int)(xy[1]),clicks=1,interval=0.2,duration=0.2,button="left")
+            print("单击左键",img)  
+         #8热键
+        elif cmdType.value == 8.0:
+            reTry = 1
+            key = sheet1.row(i)[1].value
+            pyautogui.hotkey(key)
+            print("输入热键",key)              
         i += 1
 
 if __name__ == '__main__':
@@ -152,14 +185,21 @@ if __name__ == '__main__':
     #数据检查
     checkCmd = dataCheck(sheet1)
     if checkCmd:
-        key=input('选择功能: 1.做一次 2.循环到死 \n')
-        if key=='1':
-            #循环拿出每一行指令
-            mainWork(sheet1)
-        elif key=='2':
-            while True:
-                mainWork(sheet1)
-                time.sleep(0.1)
-                print("等待0.1秒")    
+        dirNames = get_dirNameList()
+        target_index = dirNames.index("2307824")
+        for name in dirNames[target_index:]:
+            mainWork(sheet1, name) 
+
+        # key=input('选择功能: 1.做一次 2.循环到死 \n')
+        # if key=='1':
+        #     #循环拿出每一行指令
+        #     dirNames = get_dirNameList()
+        #     for name in dirNames:
+        #         mainWork(sheet1,name)
+        # elif key=='2':
+        #     while True:
+        #         mainWork(sheet1)
+        #         time.sleep(0.1)
+        #         print("等待0.1秒")    
     else:
         print('输入有误或者已经退出!')
