@@ -14,25 +14,24 @@ def list_subdirectories(directory_path):
 
 def get_dirNameList():
     # 指定文件夹路径
-    path = r'E:\同等学力数据\2025年1月14日'  # 替换为你的文件夹路径
+    path = r'E:\同等学力数据\2025年1月16日1'  # 替换为你的文件夹路径
 
     # 获取子文件夹名称
     subfolder_names = list_subdirectories(path)
 
     return subfolder_names
 
-
 #定义鼠标事件
 
 #pyautogui库其他用法 https://blog.csdn.net/qingfengxd1/article/details/108270159
 
-def mouseClick(clickTimes,lOrR,img,reTry):
+def mouseClick(clickTimes,lOrR,img,reTry,offsetX,offsety):
     if reTry == 1:
         while True:
             try:
                 location=pyautogui.locateCenterOnScreen(img,confidence=0.9)
                 if location is not None:
-                    pyautogui.click(location.x,location.y,clicks=clickTimes,interval=0.2,duration=0.2,button=lOrR)
+                    pyautogui.click(location.x+offsetX,location.y+offsety,clicks=clickTimes,interval=0.2,duration=0.2,button=lOrR)
                     break
                 print("未找到匹配图片,0.1秒后重试")
                 time.sleep(0.1)
@@ -115,10 +114,16 @@ def mainWork(img,name):
         if cmdType.value == 1.0:
             #取图片名称
             img = sheet1.row(i)[1].value
+            offsetx = sheet1.row(i)[3].value
+            if offsetx == '':
+                offsetx = 0
+            offsety = sheet1.row(i)[4].value
+            if offsety == '':
+                offsety = 0
             reTry = 1
             if sheet1.row(i)[2].ctype == 2 and sheet1.row(i)[2].value != 0:
                 reTry = sheet1.row(i)[2].value
-            mouseClick(1,"left",img,reTry)
+            mouseClick(1,"left",img,reTry,offsetx,offsety)
             print("单击左键",img)
         #2代表双击左键
         elif cmdType.value == 2.0:
@@ -183,10 +188,10 @@ if __name__ == '__main__':
     sheet1 = wb.sheet_by_index(0)
     print('欢迎使用不高兴就喝水牌RPA~')
     #数据检查
-    checkCmd = dataCheck(sheet1)
+    checkCmd = True ##dataCheck(sheet1)
     if checkCmd:
         dirNames = get_dirNameList()
-        target_index = dirNames.index("2307824")
+        target_index = dirNames.index("1087458")
         for name in dirNames[target_index:]:
             mainWork(sheet1, name) 
 
